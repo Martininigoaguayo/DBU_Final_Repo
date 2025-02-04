@@ -89,14 +89,14 @@ def filter_by_ball_radius(data, index, radius):
 
 
 
-def most_similar_with_wasserstein(relevant_index, relevant_df, weighting_function, steps = 48, normalizing_factor = 11, max_weight = 1):
+def most_similar_with_wasserstein(relevant_index, relevant_df,relevant_weights, weighting_function, steps = 48, normalizing_factor = 11, max_weight = 1):
     one_match = relevant_df
     identified_corner_df= relevant_df.loc[relevant_index:relevant_index+1]
     one_match = one_match.iloc[::steps]
     print(weighting_function)
     #####
     inverse_identified_corner_weights = calculate_weights(identified_corner_df,fun = weighting_function)
-    inverse_distance_list = calculate_weights(one_match, fun= weighting_function) #Inverse proportionality to distance
+    inverse_distance_list = relevant_weights
     #one_match = normalize_positions_with_ball(one_match)
 
     # Filter the columns, then reorder so 'ball_x_team' and 'ball_y_team' are last
@@ -104,37 +104,23 @@ def most_similar_with_wasserstein(relevant_index, relevant_df, weighting_functio
     # Separate ball_x_team and ball_y_team columns and place them at the end
     reordered_columns = [col for col in columns_to_select if not col.startswith("ball")] + \
                         [col for col in columns_to_select if col.startswith("ball")]
-    
-    
     # Apply the reordered columns to the DataFrame, then convert to numpy
     coordinates_numpy = one_match[reordered_columns].to_numpy()
 
-    
     identified_corner_coordinates_numpy = identified_corner_df[reordered_columns].to_numpy()
 
-
-    #####
-
-    
     identified_corner_coordinates = [list(zip(row[~np.isnan(row)][::2],row[~np.isnan(row)][1::2])) for row in identified_corner_coordinates_numpy]
     coordinates_zipped = [list(zip(row[~np.isnan(row)][::2],row[~np.isnan(row)][1::2])) for row in coordinates_numpy]
     
     #Get closest situations
     distances = []
     indices = one_match.index.to_numpy()
-    #print(len(indices))
-    #print(len(inverse_distance_list))
 
     i = 0
     for weights, coordinates in zip(inverse_distance_list, coordinates_zipped):
-        #print(len(inverse_identified_corner_weights[0]))
-        #print(len(weights))
-        #print(identified_corner_coordinates)
-        #print(coordinates)
-        ##print(len(coordinates))
+
         if(not np.isnan(np.sum(weights)) and (len(weights) == len(inverse_identified_corner_weights[0])) and (len(coordinates) == len(identified_corner_coordinates[0]) )):
-            
-            #print(i)
+  
             distances.append((wasserstein_distance_nd(identified_corner_coordinates[0], coordinates, u_weights= inverse_identified_corner_weights[0], v_weights=weights), indices[i]))
         i+=1
     indices_and_distances = sorted(distances, key = lambda t: t[0])
@@ -145,7 +131,7 @@ def most_similar_with_wasserstein(relevant_index, relevant_df, weighting_functio
     return indices
 
 
-def most_similar_with_wasserstein_from_row(clicked_row : dict, relevant_df, weighting_function, steps=48, normalizing_factor=11, max_weight=1):
+def most_similar_with_wasserstein_from_row(clicked_row : dict, relevant_df, relevant_weights,weighting_function, steps=48, normalizing_factor=11, max_weight=1):
     """
     Find the most similar situations to a given clicked row using Wasserstein distance.
     
@@ -165,7 +151,7 @@ def most_similar_with_wasserstein_from_row(clicked_row : dict, relevant_df, weig
     print(clicked_df.head())
     # Calculate weights for clicked situation and for each row in one_match
     clicked_weights = calculate_weights(clicked_df, weighting_function,"ball_x_team","ball_y_team")
-    one_match_weights = calculate_weights(one_match, weighting_function)
+    one_match_weights = relevant_weights
 
     # Prepare and reorder columns for comparison
     columns_to_select = one_match.filter(regex="^home|^ball_x|^ball_y").columns

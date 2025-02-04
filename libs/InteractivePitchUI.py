@@ -7,7 +7,7 @@ from IPython.display import display
 from libs.weight_generator import *
 
 class InteractivePitch:
-    def __init__(self, match_data):
+    def __init__(self, match_data, granularity = 48):
         self.match_data : pd.DataFrame = match_data  # Store match data
         # Initialize pitch
         self.football_pitch = Pitch(
@@ -16,6 +16,13 @@ class InteractivePitch:
         )
         self.fig, self.ax = self.football_pitch.draw(figsize=(10, 7))
         
+
+        self.weights = {}
+
+        self.steps = granularity
+
+
+
         self.selected_index = None
         self.custom_situation = True
         # Data structures for storing points, vectors, situations, and ball position
@@ -75,6 +82,8 @@ class InteractivePitch:
         self.display_ui()
     
     def calculate_wasserstein(self, _):
+
+
          # Retrieve selected function from the dropdown
         selected_function = self.function_dropdown.value
         weighting_function = {
@@ -84,24 +93,31 @@ class InteractivePitch:
             "function_3": inverse_exponential_weighting
         }[selected_function]
 
-        relevant_data = self.match_data
+        weights = None
+
+
+        if selected_function in self.weights:
+            weights = self.weights[selected_function]
+        else:
+            #Sample match data at interval
+            weights = calculate_weights(self.match_data[::self.steps],weighting_function)
+            self.weights[selected_function] = weights
+
+
+        #### Return indices of neighbours from queried situtations, either with custom_sitations or RL situations
 
         if self.situations and self.ball_position and self.custom_situation:
            
             # Prepare clicked row from the picked saved situation
             clicked_situation = self.situations[self.situation_dropdown.value]
             clicked_row = self._situation_to_row(clicked_situation)
-            # Calculate Wasserstein distances
-            #indices = most_similar_with_wasserstein_from_row(clicked_row, self.match_data, weighting_function)
-           
-            #if (self.ball_position):
-            #    relevant_data = filter_by_ball_radius(self.match_data,self.ball_position[0],self.ball_position[1],10)
-          
+       
 
-            indices = most_similar_with_wasserstein_from_row(clicked_row, relevant_data, weighting_function)
+            indices = most_similar_with_wasserstein_from_row(clicked_row, self.match_data, weights, weighting_function,steps=self.steps)
             print("Wasserstein calculated, closest situations:", indices[:10])  # Display the top 10 closest situations
             self.similar_situation_indices = indices
         else:
+            relevant_data = self.match_data
             selected_index = relevant_data[
                 (relevant_data["match_name"] == self.match_name_dropdown.value) &
                 (relevant_data["half"] == self.match_half_dropdown.value) &
@@ -111,7 +127,7 @@ class InteractivePitch:
                 ].index.to_numpy()[0]
             print(selected_index)
             self.selected_index = selected_index
-            indices = most_similar_with_wasserstein(selected_index,relevant_data,weighting_function)
+            indices = most_similar_with_wasserstein(selected_index,relevant_data,weights, weighting_function, steps=self.steps)
             print("Wasserstein calculated, closest situations:", indices[:10])  # Display the top 10 closest situations
             self.similar_situation_indices = indices
 
@@ -316,6 +332,13 @@ class InteractivePitch:
             icon='check'  # (FontAwesome names without the `fa-` prefix)
         )
 
+        self.interval_length_chooser = widgets.Text(
+            value='0',
+            placeholder='Type something',
+            description='Length of situation in seconds:',
+            disabled=False
+        )
+
         # Input boxes for real match input
         self.chosen_seconds = widgets.Text(
             value='0',
@@ -375,10 +398,12 @@ class InteractivePitch:
             self.ui_container.children = [
                 widgets.VBox([self.function_dropdown, self.toggle]),
                 widgets.VBox([
+                    
                     self.chosen_minutes, 
                     self.chosen_seconds, 
                     self.match_half_dropdown, 
-                    self.match_name_dropdown, 
+                    self.match_name_dropdown,
+                    self.interval_length_chooser,
                     self.calculate_wasserstein_button
                 ])
             ]
@@ -390,7 +415,8 @@ class InteractivePitch:
                     self.save_button, 
                     self.clear_button, 
                     self.toggle_vector_button, 
-                    self.toggle_ball_button, 
+                    self.toggle_ball_button,
+                    self.interval_length_chooser,
                     self.calculate_wasserstein_button
                 ])
             ]
