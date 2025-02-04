@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from IPython.display import display
 from libs.weight_generator import *
+from libs.alpha_shape import *
 
 class InteractivePitch:
     def __init__(self, match_data):
@@ -18,8 +19,9 @@ class InteractivePitch:
         
         self.selected_index = None
         self.custom_situation = True
+
         # Data structures for storing points, vectors, situations, and ball position
-        self.points = []
+        self.points = [] 
         self.vectors = []
         self.situations = []
         self.similar_situation_indices = []
@@ -37,7 +39,10 @@ class InteractivePitch:
         self._setup_ui()
         self.fig.canvas.mpl_connect('button_press_event', self.on_click)
     
-    
+        # Intialize the Alpha Shapes Features on the match
+        self.alpha_features, self.alpha_formation_indices = compute_alpha_shape_features(match_data)
+
+
     def on_click(self, event):
         if event.inaxes:
             x, y = event.xdata, event.ydata
@@ -96,7 +101,7 @@ class InteractivePitch:
            
             #if (self.ball_position):
             #    relevant_data = filter_by_ball_radius(self.match_data,self.ball_position[0],self.ball_position[1],10)
-          
+
 
             indices = most_similar_with_wasserstein_from_row(clicked_row, relevant_data, weighting_function)
             print("Wasserstein calculated, closest situations:", indices[:10])  # Display the top 10 closest situations

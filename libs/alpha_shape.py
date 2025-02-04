@@ -1,11 +1,22 @@
 import alphashape
-from shapely.geometry import Polygon
 import numpy as np
 import gudhi as gd
-import matplotlib.pyplot as plt
-from mplsoccer import Pitch
 import pandas as pd
+
+import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+
+from mplsoccer import Pitch
+
+
+
+
+from shapely.geometry import Polygon, MultiPolygon, GeometryCollection
+from shapely.ops import unary_union
+from shapely.affinity import translate
+
+from sklearn.neighbors import KDTree
+
 
 
 # ImpLememted using the source:
@@ -134,9 +145,6 @@ def alpha_complex(df, regex="^home", max_alpha_square=2):
     
     return alpha_complexes, df.index.to_numpy()
 
-from shapely.geometry import Polygon, MultiPolygon, GeometryCollection
-from shapely.ops import unary_union
-from shapely.affinity import translate
 
 def normalize_geometry(geometry):
     """
@@ -226,3 +234,81 @@ def top_n_similar_geometries(target_geometry, geometry_list, index_list, n=10):
     
     # Return the top n geometries
     return areas_sorted[:n]
+
+
+
+
+
+
+### Generate Alpha Shapes features for all player formations in a game
+def compute_alpha_shape_features(df, regex="^home", num_players=None, alpha=0.1):
+    """
+    Computes alpha shape features for player formations.
+    
+    Returns:
+        - feature_vectors: List of feature vectors [area, perimeter, centroid_x, centroid_y, aspect_ratio, density]
+        - formation_indices: Corresponding frame indices for each feature vector.
+    """
+    df = df.filter(regex=regex)
+    np_data = df.to_numpy()
+    feature_vectors = []
+    formation_indices = []
+
+    for index, row in zip(df.index, np_data):
+        row = row[~np.isnan(row)]
+        player_positions = list(zip(row[0::2], row[1::2]))
+
+        if num_players is not None and len(player_positions) > num_players:
+            center = np.mean(player_positions, axis=0)
+            player_positions = sorted(player_positions, key=lambda pos: np.linalg.norm(np.array(pos) - center))
+            player_positions = player_positions[:num_players]
+
+        if len(player_positions) >= 3:
+            alpha_shape_polygon = alphashape.alphashape(player_positions, alpha)
+            if isinstance(alpha_shape_polygon, Polygon):
+                area = alpha_shape_polygon.area
+                perimeter = alpha_shape_polygon.length
+                centroid_x, centroid_y = alpha_shape_polygon.centroid.x, alpha_shape_polygon.centroid.y
+                minx, miny, maxx, maxy = alpha_shape_polygon.bounds
+                aspect_ratio = (maxx - minx) / (maxy - miny + 1e-5)
+                density = len(player_positions) / (area + 1e-5)
+                
+                feature_vectors.append([area, perimeter, centroid_x, centroid_y, aspect_ratio, density])
+                formation_indices.append(index)
+
+    return np.array(feature_vectors), np.array(formation_indices)
+
+
+
+
+### Make Query the KD Tree with a specific player formation.
+def query_kd_tree(target_formation, feature_vectors, formation_indices, k=100):
+    """
+    Query the KD Tree for the closest formations based on alpha shape features.
+    """
+    
+    kd_tree = KDTree(feature_vectors)
+
+    query_features, _ = compute_alpha_shape_features(pd.DataFrame([target_formation], index=[0]))  # Ensure single row
+
+    # Convert to NumPy array & Ensure it has the same shape as training data
+    query_features = np.array(query_features)
+    print(query_features.shape)
+    # Ensure we have exactly 1 sample to query
+    if query_features.shape[0] > 1:
+        query_features = query_features[:1]  # Keep only the first row
+
+    if len(query_features.shape) == 1:
+        query_features = query_features.reshape(1, -1)
+
+    # Check dimensions before querying KDTree
+    if query_features.shape[1] != kd_tree.data.shape[1]:
+        raise ValueError(f"Mismatch: Query features have {query_features.shape[1]} dimensions, "
+                         f"but KDTree expects {kd_tree.data.shape[1]}.")
+
+    distances, indices = kd_tree.query(query_features, k)  # Query the K-D tree
+    print(f"Training Data Shape: {kd_tree.data.shape}")
+    print(f"Query Data Shape: {query_features.shape}")
+
+    # Ensure we return only 1D indices
+    return formation_indices[indices.flatten()]
