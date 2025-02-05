@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from IPython.display import display
 from libs.weight_generator import *
+from libs.alpha_shape import *
 
 class InteractivePitch:
     def __init__(self, match_data, granularity = 48):
@@ -26,8 +27,9 @@ class InteractivePitch:
         self.interval_length = 20
         self.selected_index = None
         self.custom_situation = True
+
         # Data structures for storing points, vectors, situations, and ball position
-        self.points = []
+        self.points = [] 
         self.vectors = []
         self.situations = []
         self.similar_situation_indices = []
@@ -45,7 +47,10 @@ class InteractivePitch:
         self._setup_ui()
         self.fig.canvas.mpl_connect('button_press_event', self.on_click)
     
-    
+        # Intialize the Alpha Shapes Features on the match
+        self.alpha_features, self.alpha_formation_indices = compute_alpha_shape_features(match_data)
+
+
     def on_click(self, event):
         if event.inaxes:
             x, y = event.xdata, event.ydata
@@ -106,6 +111,9 @@ class InteractivePitch:
 
 
         #### Return indices of neighbours from queried situtations, either with custom_sitations or RL situations
+        self.kd_tree = query_kd_tree(self.points, self.alpha_features, k=1000)
+        
+        self.new_df = self.match_data.iloc[self.kd_tree]
 
         if self.situations and self.ball_position and self.custom_situation:
            
