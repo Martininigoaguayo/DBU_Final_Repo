@@ -251,6 +251,8 @@ def compute_alpha_shape_features(df, regex="^home", num_players=None, alpha=0.1)
     """
     df = df.filter(regex=regex)
     np_data = df.to_numpy()
+    # subsample the df to be every 48 frames
+    np_data = np_data[::48]
     feature_vectors = []
     formation_indices = []
 

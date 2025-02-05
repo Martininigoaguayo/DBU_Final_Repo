@@ -110,7 +110,9 @@ class InteractivePitch:
 
 
         #### Return indices of neighbours from queried situtations, either with custom_sitations or RL situations
+        self.queryed_situation = query_kd_tree(self.points, self.alpha_features, self.alpha_formation_indices, k=1000)
 
+        
         if self.situations and self.ball_position and self.custom_situation:
            
             # Prepare clicked row from the picked saved situation
