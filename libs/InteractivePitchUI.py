@@ -1,3 +1,4 @@
+from libs.similar_movement import find_similar_movement, find_similar_movement_given_vector
 from mplsoccer import Pitch
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
@@ -22,7 +23,7 @@ class InteractivePitch:
         self.steps = granularity
 
 
-
+        self.interval_length = 20
         self.selected_index = None
         self.custom_situation = True
         # Data structures for storing points, vectors, situations, and ball position
@@ -83,7 +84,7 @@ class InteractivePitch:
     
     def calculate_wasserstein(self, _):
 
-
+        sequence_length = int(self.interval_length_chooser.value) * 25
          # Retrieve selected function from the dropdown
         selected_function = self.function_dropdown.value
         weighting_function = {
@@ -116,6 +117,10 @@ class InteractivePitch:
             indices = most_similar_with_wasserstein_from_row(clicked_row, self.match_data, weights, weighting_function,steps=self.steps)
             print("Wasserstein calculated, closest situations:", indices[:10])  # Display the top 10 closest situations
             self.similar_situation_indices = indices
+            distance_index_list =find_similar_movement_given_vector(self.match_data, self.vectors[0], self.similar_situation_indices[:100], sequence_length )
+            distance_index_list = sorted(distance_index_list, key = lambda x : x[0])
+            PitchDisplay(self.match_data, [index for (_,index) in distance_index_list])
+
         else:
             relevant_data = self.match_data
             selected_index = relevant_data[
@@ -130,7 +135,11 @@ class InteractivePitch:
             indices = most_similar_with_wasserstein(selected_index,relevant_data,weights, weighting_function, steps=self.steps)
             print("Wasserstein calculated, closest situations:", indices[:10])  # Display the top 10 closest situations
             self.similar_situation_indices = indices
-
+            print("Sequence length", sequence_length)
+            distance_index_list = find_similar_movement(relevant_data, selected_index, self.similar_situation_indices[:100], sequence_length )
+            distance_index_list = sorted(distance_index_list, key = lambda x : x[0])
+            PitchDisplay(self.match_data, [index for (_,index) in distance_index_list])
+            
             
     def _situation_to_row(self, situation):
         """Convert a saved situation (points and ball position) to a 1D row format compatible with the DataFrame."""
@@ -280,6 +289,10 @@ class InteractivePitch:
         if selected_player:
             self.select_player(selected_player, self.away_players_dropdown, self.away_player_numbers)
 
+    def update_interval_length(self,_ ):
+        self.interval_length = self.interval_length_chooser.value
+        
+
     def load_situation(self, change):
         """Load a saved situation and plot it on the pitch."""
         selected_situation = change['new']
@@ -369,6 +382,7 @@ class InteractivePitch:
         self.situation_dropdown.observe(self.load_situation, names='value')
 
         # Connect button events
+        self.interval_length_chooser.observe(self.update_interval_length, names='value')
         self.toggle.observe(self.toggle_view, names='value')
         self.save_button.on_click(self.save_situation)
         self.clear_button.on_click(self.clear_situation)
@@ -396,27 +410,27 @@ class InteractivePitch:
         if self.toggle.value:
             # Layout for real match input
             self.ui_container.children = [
-                widgets.VBox([self.function_dropdown, self.toggle]),
+                widgets.VBox([self.function_dropdown, self.toggle, self.interval_length_chooser,]),
                 widgets.VBox([
                     
                     self.chosen_minutes, 
                     self.chosen_seconds, 
                     self.match_half_dropdown, 
                     self.match_name_dropdown,
-                    self.interval_length_chooser,
+                    
                     self.calculate_wasserstein_button
                 ])
             ]
         else:
             # Layout for custom (saved) situations
             self.ui_container.children = [
-                widgets.VBox([self.situation_dropdown, self.function_dropdown, self.toggle]),
+                widgets.VBox([self.situation_dropdown, self.function_dropdown, self.toggle, self.interval_length_chooser,]),
                 widgets.VBox([
                     self.save_button, 
                     self.clear_button, 
                     self.toggle_vector_button, 
                     self.toggle_ball_button,
-                    self.interval_length_chooser,
+                    
                     self.calculate_wasserstein_button
                 ])
             ]
