@@ -284,13 +284,11 @@ def compute_alpha_shape_features(df, regex="^home", num_players=None, alpha=0.1)
 
 
 ### Make Query the KD Tree with a specific player formation.
-def query_kd_tree(target_formation, feature_vectors, formation_indices, k=100):
+def query_kd_tree(target_formation, kd_tree, formation_indices, k=100):
     """
     Query the KD Tree for the closest formations based on alpha shape features.
     """
     
-    kd_tree = KDTree(feature_vectors)
-
     query_features, _ = compute_alpha_shape_features(pd.DataFrame([target_formation], index=[0]))  # Ensure single row
 
     # Convert to NumPy array & Ensure it has the same shape as training data

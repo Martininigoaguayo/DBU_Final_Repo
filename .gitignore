@@ -1,4 +1,5 @@
 *.csv
 *.zip
 *.mp4
+*.json
 evaluation/suggestions_for_lasse.ipynb

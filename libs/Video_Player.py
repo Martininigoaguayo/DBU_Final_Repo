@@ -75,10 +75,11 @@ class VideoPlayer:
         self.title_label.place(relx=1.0, rely=1.0, x=-10, y=-10, anchor="se")  # Positioned in bottom-right corner
 
     def seek_to_time(self, seconds, half):
+        seconds = int(seconds)
         if isinstance(seconds, (int, float)) and half == "1H":
             self.player.set_time(int((seconds + self.video_offset_1st_half) * 1000))
         if isinstance(seconds, (int, float)) and half == "2H":
-            self.player.set_time(int(((seconds-2700) + self.video_offset_2nd_half) * 1000))
+            self.player.set_time(int(((seconds) + self.video_offset_2nd_half) * 1000))
 
     def pause_video(self):
         self.player.pause()
@@ -97,9 +98,10 @@ class VideoPlayer:
         self.time_label.config(text=f"Time: {current_time} seconds")
         self.root.after(1000, self.update_time_label)
 
+    # The next time and previous time functions are used to navigate through the video
     def next_time(self):
-        if self.distance_index_list.any():
-            self.current_index = (self.current_index + 1) % len(self.distance_index_list)
+        if self.distance_index_list.any(): # Check if the list is not empty
+            self.current_index = (self.current_index + 1) % len(self.distance_index_list) 
             specific_time_in_seconds = self.distance_index_list[self.current_index][0]
             specific_half = self.distance_index_list[self.current_index][1]
             self.seek_to_time(specific_time_in_seconds, specific_half)
