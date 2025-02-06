@@ -48,7 +48,10 @@ class InteractivePitch:
         self.fig.canvas.mpl_connect('button_press_event', self.on_click)
     
         # Intialize the Alpha Shapes Features on the match
+        
         self.alpha_features, self.alpha_formation_indices = compute_alpha_shape_features(match_data)
+
+        self.kd_tree = KDTree(self.alpha_features)
 
 
     def on_click(self, event):
