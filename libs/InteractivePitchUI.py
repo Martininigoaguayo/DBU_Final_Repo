@@ -111,9 +111,9 @@ class InteractivePitch:
 
 
         #### Return indices of neighbours from queried situtations, either with custom_sitations or RL situations
-        self.kd_tree = query_kd_tree(self.points, self.alpha_features, k=1000)
+        self.surrounding_indices = query_kd_tree(self.points, self.alpha_features, k=1000)
         
-        self.new_df = self.match_data.iloc[self.kd_tree]
+        self.new_df = self.match_data.iloc[self.surrounding_indices]
 
         if self.situations and self.ball_position and self.custom_situation:
            
