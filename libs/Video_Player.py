@@ -6,14 +6,15 @@ import numpy as np
 
 
 class VideoPlayer:
-    def __init__(self, video_path, title="", video_offset_1st_half=0, video_offset_2nd_half=0, distance_index_list=None):
+    def __init__(self, video_path, title="", video_offset_1st_half=0, video_offset_1st_half_end=0, video_offset_2nd_half=0, distance_index_list=None):
         self.ratings = []
         self.video_path = video_path
         self.title = title
-        self.video_offset_1st_half = video_offset_1st_half
-        self.video_offset_2nd_half = video_offset_2nd_half
-        self.distance_index_list = distance_index_list
+        self.video_offset_1st_half = int(video_offset_1st_half)
+        self.video_offset_2nd_half = (video_offset_2nd_half)
+        self.distance_index_list = np.array(distance_index_list)
         self.current_index = 0
+        self.video_offset_1st_half_end= video_offset_1st_half_end
 
         # Create a VLC instance and media player
         self.vlc_instance = vlc.Instance()
@@ -77,9 +78,9 @@ class VideoPlayer:
     def seek_to_time(self, seconds, half):
         seconds = int(seconds)
         if isinstance(seconds, (int, float)) and half == "1H":
-            self.player.set_time(int((seconds + self.video_offset_1st_half) * 1000))
+            self.player.set_time((int(int(seconds) + self.video_offset_1st_half)) * 1000)
         if isinstance(seconds, (int, float)) and half == "2H":
-            self.player.set_time(int(((seconds) + self.video_offset_2nd_half) * 1000))
+            self.player.set_time((int(int(seconds) + int(self.video_offset_2nd_half -self.video_offset_1st_half_end))) * 1000)
 
     def pause_video(self):
         self.player.pause()

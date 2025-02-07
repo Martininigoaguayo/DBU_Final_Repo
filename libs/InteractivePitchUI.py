@@ -49,9 +49,9 @@ class InteractivePitch:
     
         # Intialize the Alpha Shapes Features on the match
         
-        self.alpha_features, self.alpha_formation_indices = compute_alpha_shape_features(match_data)
+        #self.alpha_features, self.alpha_formation_indices = compute_alpha_shape_features(match_data)
 
-        self.kd_tree = KDTree(self.alpha_features)
+        #self.kd_tree = KDTree(self.alpha_features)
 
 
     def on_click(self, event):
@@ -84,6 +84,7 @@ class InteractivePitch:
     def toggle_view(self,_):
         if self.custom_situation == True:
             self.custom_situation = False
+            print("Switched to real match input")
             self._setup_ui()
         else:
             self.custom_situation = True
@@ -114,11 +115,11 @@ class InteractivePitch:
 
 
         #### Return indices of neighbours from queried situtations, either with custom_sitations or RL situations
-        self.surrounding_indices = query_kd_tree(self.points, self.alpha_features, k=1000)
+        #self.surrounding_indices = query_kd_tree(self.points, self.alpha_features, k=1000)
         
-        self.new_df = self.match_data.iloc[self.surrounding_indices]
+        #self.new_df = self.match_data.iloc[self.surrounding_indices]
 
-        if self.situations and self.ball_position and self.custom_situation:
+        if self.custom_situation and self.situations and self.ball_position:
            
             # Prepare clicked row from the picked saved situation
             clicked_situation = self.situations[self.situation_dropdown.value]
@@ -130,7 +131,10 @@ class InteractivePitch:
             self.similar_situation_indices = indices
             distance_index_list =find_similar_movement_given_vector(self.match_data, self.vectors[0], self.similar_situation_indices[:100], sequence_length )
             distance_index_list = sorted(distance_index_list, key = lambda x : x[0])
-            PitchDisplay(self.match_data, [index for (_,index) in distance_index_list])
+            self.similar_situation_indices = [elm[1] for elm in distance_index_list]
+            PitchDisplay(self.match_data, self.similar_situation_indices)
+ 
+            
 
         else:
             relevant_data = self.match_data
@@ -149,8 +153,9 @@ class InteractivePitch:
             print("Sequence length", sequence_length)
             distance_index_list = find_similar_movement(relevant_data, selected_index, self.similar_situation_indices[:100], sequence_length )
             distance_index_list = sorted(distance_index_list, key = lambda x : x[0])
-            PitchDisplay(self.match_data, [index for (_,index) in distance_index_list])
-            
+            self.similar_situation_indices = [elm[1] for elm in distance_index_list]
+            PitchDisplay(self.match_data, self.similar_situation_indices)
+ 
             
     def _situation_to_row(self, situation):
         """Convert a saved situation (points and ball position) to a 1D row format compatible with the DataFrame."""
@@ -534,7 +539,7 @@ class PitchDisplay:
                     ax.scatter(x, y, s=100, color='yellow', edgecolors='red', alpha=(j / len(df_ball_movement)), label='Ball' if j == 1 else "")
 
             # Title and legend
-            ax.set_title(f"Half: {half}, Time [s]: {self.df_processed['Time [s]'].iloc[index]}")
+            ax.set_title(f"Half: {half}, Time [s]: {self.df_processed['Time [s]'].loc[index]}")
             ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=4)
             plt.show()
 
