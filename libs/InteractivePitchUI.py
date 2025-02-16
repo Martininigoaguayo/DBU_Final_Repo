@@ -147,7 +147,7 @@ class InteractivePitch:
                 ].index.to_numpy()[0]
             print(selected_index)
             self.selected_index = selected_index
-            indices = most_similar_with_wasserstein(selected_index,relevant_data,weights, weighting_function, steps=self.steps)
+            indices = most_similar_with_wasserstein_closed_interval(selected_index,relevant_data,selected_function)
             print("Wasserstein calculated, closest situations:", indices[:10])  # Display the top 10 closest situations
             self.similar_situation_indices = indices
             print("Sequence length", sequence_length)
