@@ -27,7 +27,7 @@ class InteractivePitch:
         self.interval_length = 20
         self.selected_index = None
         self.custom_situation = True
-
+       
         # Data structures for storing points, vectors, situations, and ball position
         self.points = [] 
         self.vectors = []
@@ -39,7 +39,7 @@ class InteractivePitch:
         # Mode flags
         self.draw_vector_mode = False
         self.place_ball_mode = False
-        
+
         # Initialize player dropdowns
         self._initialize_players(match_data)
         
@@ -129,10 +129,11 @@ class InteractivePitch:
             indices = most_similar_with_wasserstein_from_row(clicked_row, self.match_data, weights, weighting_function,steps=self.steps)
             print("Wasserstein calculated, closest situations:", indices[:10])  # Display the top 10 closest situations
             self.similar_situation_indices = indices
-            distance_index_list =find_similar_movement_given_vector(self.match_data, self.vectors[0], self.similar_situation_indices[:100], sequence_length )
+            distance_index_list =find_similar_movement_given_vector(self.match_data, self.vectors[0], self.similar_situation_indices[:100],sequence_length)
             distance_index_list = sorted(distance_index_list, key = lambda x : x[0])
             self.similar_situation_indices = [elm[1] for elm in distance_index_list]
-            PitchDisplay(self.match_data, self.similar_situation_indices)
+            
+            PitchDisplay(self.match_data,self.similar_situation_indices)
  
             
 
@@ -147,14 +148,16 @@ class InteractivePitch:
                 ].index.to_numpy()[0]
             print(selected_index)
             self.selected_index = selected_index
-            indices = most_similar_with_wasserstein_closed_interval(selected_index,relevant_data,selected_function)
+            indices = most_similar_with_wasserstein_closed_interval(selected_index,relevant_data,weighting_function)
             print("Wasserstein calculated, closest situations:", indices[:10])  # Display the top 10 closest situations
             self.similar_situation_indices = indices
             print("Sequence length", sequence_length)
             distance_index_list = find_similar_movement(relevant_data, selected_index, self.similar_situation_indices[:100], sequence_length )
             distance_index_list = sorted(distance_index_list, key = lambda x : x[0])
             self.similar_situation_indices = [elm[1] for elm in distance_index_list]
-            PitchDisplay(self.match_data, self.similar_situation_indices)
+            
+            PitchDisplay(self.match_data,self.similar_situation_indices)
+ 
  
             
     def _situation_to_row(self, situation):
@@ -472,6 +475,8 @@ class PitchDisplay:
         df_processed (pd.DataFrame): The processed DataFrame containing player and ball positions.
         indices (list): List of indices in the DataFrame to plot.
         """
+
+        print(indices[:10])
         self.df_processed = df_processed
         self.indices = indices
         self.selected_index = indices[0]  # Initialize with the first index
@@ -485,9 +490,10 @@ class PitchDisplay:
         
         # Output widget to display the pitch
         self.output = widgets.Output()
-        
         # Initialize display
         self._initialize_display()
+
+        
         
     def _initialize_display(self):
         """Set up widgets and initial plot."""

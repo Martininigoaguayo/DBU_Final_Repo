@@ -229,7 +229,7 @@ def inverse_exponential_weighting(x, sum=0, scaling_factor=20, n_points=12, ball
 
 
 
-def most_similar_with_wasserstein_closed_interval(relevant_index, relevant_df, weighting_function, steps = 12, normalizing_factor = 11, max_weight = 1,interval_steps=10):
+def most_similar_with_wasserstein_closed_interval(relevant_index, relevant_df, weighting_function, steps = 48, normalizing_factor = 11, max_weight = 1,interval_steps=2):
     one_match = relevant_df
     identified_corner_start_df = relevant_df.loc[relevant_index:relevant_index+1]
     identified_corner_stop_df = relevant_df.loc[relevant_index+(steps*interval_steps):relevant_index+(steps*interval_steps)+1]
@@ -269,6 +269,7 @@ def most_similar_with_wasserstein_closed_interval(relevant_index, relevant_df, w
 
 
     i = 0
+    print("Starting length calculation")
     for weights, coordinates, weights_next, coordinates_next  in zip(inverse_distance_list, coordinates_zipped, inverse_distance_list[interval_steps:],coordinates_zipped[interval_steps:]):
         if(not np.isnan(np.sum(weights)) and (len(weights) == len(identified_situation_weights_start[0])) and (len(coordinates) == len(identified_situation_coordinates_start[0]) ) and (len(coordinates_next) == len(coordinates))):
             
