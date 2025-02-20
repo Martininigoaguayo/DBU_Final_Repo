@@ -3,24 +3,24 @@ Final repository for a search tool for DBU video analysts (prototype_UI.ipynb)
 
 ## EXPECTED FOLDER STRUCTURE OF DATA
 Example:
-DBU_Final_Repo/
-│
-├── data/ 
-│   ├── H_EURO2024GERMANY/
-│   │   ├── 2036189_England_Slovenia/
-│   │   │   ├── 3-2024-2036200-England_Slovenia.mp4
-│   │   │   ├── SRB - ENG.json
-│   │   │   ├── tracking_away.csv
-│   │   │   ├── tracking_home.csv
-│   │   ├── 2036161_Germany_Scotland/
-│   │   │   ├── 3-2024-2036161-Germany_Scotland.mp4
-│   │   │   ├── GER - SCT.json
-│   │   │   ├── tracking_away.csv
-│   │   │   ├── tracking_home.csv
-│   │   ├── ... (more matches)
-├── ...
-├── protoype_UI.ipynb
-├── ...
+DBU_Final_Repo/ <br>
+│ <br>
+├── data/ <br>
+│   ├── H_EURO2024GERMANY/<br>
+│   │   ├── 2036189_England_Slovenia/<br>
+│   │   │   ├── 3-2024-2036200-England_Slovenia.mp4<br>
+│   │   │   ├── SRB - ENG.json<br>
+│   │   │   ├── tracking_away.csv<br>
+│   │   │   ├── tracking_home.csv<br>
+│   │   ├── 2036161_Germany_Scotland/<br>
+│   │   │   ├── 3-2024-2036161-Germany_Scotland.mp4<br>
+│   │   │   ├── GER - SCT.json<br>
+│   │   │   ├── tracking_away.csv<br>
+│   │   │   ├── tracking_home.csv<br>
+│   │   ├── ... (more matches)<br>
+├── ...<br>
+├── protoype_UI.ipynb<br>
+├── ...<br>
 
 ## MAIN DATA EXTRACTION
 The tool begins with extracting all of the match data from the tracking .csv files from the folders and combining all of the home and away tracking positions into one pandas dataframe. 
