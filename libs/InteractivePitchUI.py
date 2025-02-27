@@ -545,7 +545,7 @@ class PitchDisplay:
                     ax.scatter(x, y, s=100, color='yellow', edgecolors='red', alpha=(j / len(df_ball_movement)), label='Ball' if j == 1 else "")
 
             # Title and legend
-            ax.set_title(f"Half: {half}, Time [s]: {self.df_processed['Time [s]'].loc[index]}")
+            ax.set_title(f"Half: {half}, Time [s]: {self.df_processed['Time [s]'].loc[index]}, Team: {self.df_processed['match_name'].loc[index]}")
             ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=4)
             plt.show()
 
