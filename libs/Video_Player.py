@@ -11,10 +11,10 @@ class VideoPlayer:
         self.video_path = video_path
         self.title = title
         self.video_offset_1st_half = int(video_offset_1st_half)
-        self.video_offset_2nd_half = (video_offset_2nd_half)
+        self.video_offset_2nd_half = int(video_offset_2nd_half)
         self.distance_index_list = np.array(distance_index_list)
         self.current_index = 0
-        self.video_offset_1st_half_end= video_offset_1st_half_end
+        self.video_offset_1st_half_end= int(video_offset_1st_half_end)
 
         # Create a VLC instance and media player
         self.vlc_instance = vlc.Instance()
@@ -77,10 +77,22 @@ class VideoPlayer:
 
     def seek_to_time(self, seconds, half):
         seconds = int(seconds)
+        print(seconds)
+
+        print(self.video_offset_1st_half)
+
+        print(self.video_offset_1st_half_end)
+
+        print(self.video_offset_2nd_half)
+
+        print((int(int(seconds) + self.video_offset_1st_half + self.video_offset_2nd_half -self.video_offset_1st_half_end)) * 1000)
+
+        print(int(self.video_offset_2nd_half -self.video_offset_1st_half_end))
+        
         if isinstance(seconds, (int, float)) and half == "1H":
             self.player.set_time((int(int(seconds) + self.video_offset_1st_half)) * 1000)
         if isinstance(seconds, (int, float)) and half == "2H":
-            self.player.set_time((int(int(seconds) + int(self.video_offset_2nd_half -self.video_offset_1st_half_end))) * 1000)
+            self.player.set_time((int(int(seconds) - 2700 + self.video_offset_2nd_half)) * 1000)
 
     def pause_video(self):
         self.player.pause()
@@ -101,9 +113,11 @@ class VideoPlayer:
 
     # The next time and previous time functions are used to navigate through the video
     def next_time(self):
+
         if self.distance_index_list.any(): # Check if the list is not empty
             self.current_index = (self.current_index + 1) % len(self.distance_index_list) 
             specific_time_in_seconds = self.distance_index_list[self.current_index][0]
+            print(specific_time_in_seconds)
             specific_half = self.distance_index_list[self.current_index][1]
             self.seek_to_time(specific_time_in_seconds, specific_half)
             self.time_label.config(text=f"Time: {specific_time_in_seconds} seconds")
